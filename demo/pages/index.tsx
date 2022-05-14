@@ -1,4 +1,4 @@
-import { h, Fragment, createInclude, definePage } from '../../lib/mod.ts';
+import { h, Fragment, createInclude, definePage } from 'microstream';
 
 const Include = createInclude(import.meta.url);
 

@@ -1,4 +1,4 @@
-import { App } from "../lib/mod.ts";
+import { App } from "microstream";
 
 const app = new App({
     root: import.meta.url

@@ -3,5 +3,6 @@
     "jsx": "react",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
-  }
+  },
+  "importMap": "import_map.json"
 }

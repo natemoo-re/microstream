@@ -1,4 +1,4 @@
-import { h, Fragment, use, createInclude, definePage } from '../../lib/mod.ts';
+import { h, use, createInclude, definePage } from 'microstream';
 
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 

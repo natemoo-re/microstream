@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "microstream": "https://deno.land/x/microstream@0.0.2/mod.ts"
+  }
+}
