@@ -1,5 +1,7 @@
-import "./jsx.d.ts";
+import type { ServeInit } from "https://deno.land/std@0.139.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.139.0/http/server.ts";
 import { unique } from './shorthash.ts'
+import "./jsx.d.ts";
 
 declare class FetchEvent extends Event {
   request: Request;
@@ -29,6 +31,7 @@ interface AppManifest {
 
 export interface AppOptions {
   root: string;
+  serve?: ServeInit;
 }
 
 export class App {
@@ -120,7 +123,17 @@ export class App {
     });
   }
 
-  async render(request: Request, { signal }: { signal: AbortSignal }): Promise<Response> {
+  async #isAssetRequest(request: Request): Promise<URL | undefined> {
+    const fileURL = new URL('./public/' + new URL(request.url).pathname, this.#opts.root);
+    try {
+      await Deno.readFile(fileURL)
+      return fileURL;
+    } catch (_e) {
+      // ignored
+    }
+  }
+
+  async render(request: Request, { signal }: { signal?: AbortSignal } = {}): Promise<Response> {
     const { route, params } = this.#match(new URL(request.url)) ?? {};
     if (!route) {
       return this.#notFoundResponse(request);
@@ -139,13 +152,17 @@ export class App {
     return new Response(renderToStream(content, { signal }), response);
   }
 
-  async handleEvent(event: FetchEvent) {
-    const response = await this.render(event.request, { signal: event.request.signal });
-    event.respondWith(response);
+  async #handleRequest(request: Request) {
+    const asset = await this.#isAssetRequest(request);
+    if (asset) {
+      return await fetch(asset.toString());
+    }
+    const response = await this.render(request);
+    return response;
   }
 
   listen() {
-    addEventListener('fetch', this);
+    return serve(this.#handleRequest.bind(this), this.#opts.serve);
   }
 }
 
@@ -296,8 +313,8 @@ export async function Then({ children }: Record<string|number|symbol, any>, { re
 
 export async function Catch({ children }: { children?: (error: Error) => any }, { error, id }: any) {
   let child: string;
-  if (children.length === 1 && typeof children[0] === 'function') {
-    child = await render(children[0](error));
+  if ((children as any).length === 1 && typeof (children as any)[0] === 'function') {
+    child = await render((children as any)[0](error));
   } else {
     child = await render(html`${children}`);
   }
