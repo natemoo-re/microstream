@@ -1,4 +1,3 @@
-
 /*
 	shorthash
 	(c) 2013 Bibig
@@ -9,10 +8,10 @@
 
 // refer to: http://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/
 export function bitwise(str: string){
-	var hash = 0;
+	let hash = 0;
 	if (str.length == 0) return hash;
-	for (var i = 0; i < str.length; i++) {
-		var ch = str.charCodeAt(i);
+	for (let i = 0; i < str.length; i++) {
+		const ch = str.charCodeAt(i);
 		hash = ((hash<<5)-hash) + ch;
 		hash = hash & hash; // Convert to 32bit integer
 	}
@@ -23,13 +22,13 @@ export function bitwise(str: string){
 // convert 10 binary to customized binary, max is 62
 export function binaryTransfer(integer: number, binary: number) {
 	binary = binary || 62;
-	var stack = [];
-	var num;
-	var result = '';
-	var sign = integer < 0 ? '-' : '';
+	const stack = [];
+	let num;
+	let result = '';
+	const sign = integer < 0 ? '-' : '';
 	
-	function table (num) {
-		var t = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+	function table (num: number) {
+		const t = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 		return t[num];
 	}
 	
@@ -45,7 +44,7 @@ export function binaryTransfer(integer: number, binary: number) {
 		stack.push(table(integer));
 	}
 	
-	for (var i = stack.length - 1; i >= 0; i--) {
+	for (let i = stack.length - 1; i >= 0; i--) {
 		result += stack[i];
 	} 
 	
@@ -58,6 +57,6 @@ export function binaryTransfer(integer: number, binary: number) {
  * eg: -aGtzd will be ZaGtzd
  */
 export function unique (text: string) {
-	var id = binaryTransfer(bitwise(text), 61);
+	const id = binaryTransfer(bitwise(text), 61);
 	return id.replace('-', 'Z');
 }
