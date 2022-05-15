@@ -36,20 +36,29 @@ export interface AppOptions {
 
 export class App {
   #opts: AppOptions;
-  #manifest: AppManifest;
+  #manifest!: AppManifest;
+  #init: Promise<void>;
+
   constructor(opts: AppOptions) {
     this.#opts = opts;
-    this.#manifest = this.#createManifest();
+    let ready: () => void;
+    this.#init = new Promise((resolve) => {
+      ready = resolve;
+    })
+    this.#createManifest().then((manifest) => {
+      ready();
+      this.#manifest = manifest;
+    });
   }
 
-  #createManifest(): AppManifest {
+  async #createManifest(): Promise<AppManifest> {
     const pages = new URL('./pages', this.#opts.root);
     const manifest: AppManifest = { routes: [] };
-    function collect(ent: Deno.DirEntry, root: URL = pages) {
+    async function collect(ent: Deno.DirEntry, root: URL = pages) {
       const fileURL = new URL(ent.name, root + '/');
       if (ent.isDirectory) {
-        for (const e of Deno.readDirSync(fileURL)) {
-          collect(e);
+        for await (const e of Deno.readDir(fileURL)) {
+          await collect(e);
         }
       } else if (ent.isFile) {
         const type = fileURL.pathname.endsWith('.tsx') ? 'page' : 'endpoint';
@@ -65,8 +74,8 @@ export class App {
         manifest.routes.push({ pathname, fileURL, pattern, type, depth, score });
       }
     }
-    for (const e of Deno.readDirSync(pages)) {
-      collect(e);
+    for await (const e of Deno.readDir(pages)) {
+      await collect(e);
     }
     return manifest;
   }
@@ -161,7 +170,8 @@ export class App {
     return response;
   }
 
-  listen() {
+  async listen() {
+    await this.#init;
     return serve(this.#handleRequest.bind(this), this.#opts.serve);
   }
 }
